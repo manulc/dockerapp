@@ -1,0 +1,30 @@
+# Indicamos la versión de CircleCI
+version: 2
+# Aquí configuramos los trabajos a ejecutar por CircleCI
+jobs:
+  build:
+# Establecemos el directorio predeterminado por defecto
+    working_directory: /dockerapp
+# Aquí indicamos el entorno de CircleCI donde se van a ejecutar los pasos de construcción de contenedores para nuestra aplicación,así como la ejecución de pruebas unitarias
+# Se trata de un contenedor principal construido a partir de la imagen 'docker' con tag o versión '17.05.0-ce-git'(es un docker con git instalado).
+# En este contenedor principal se van a crear y almacenar los contenedores para nuestra aplicación cliente 'dockerapp' y el servidor 'redis'.
+# Es decir,son contenedores dentro de un contenedor con Docker instalado.
+    docker:
+      - image: docker:17.05.0-ce-git
+    steps:
+# Propiedad para inspeccionar el código fuente de nuestra aplicación desde GtHub y pasarlo al directorio de trabajo establecido con 'working_directory'
+      - checkout
+# Propiedad necesaria para el despliegue de contenedores en DockerHub usando comandos de Docker Compose
+      - setup_remote_docker
+      - run:
+# Instalamos como una dependencia Docker Compose para poder utilizar sus comandos
+          name: Install dependencies
+          command: |
+            apk add --no-cache py-pip=9.0.0-r1
+            pip install docker-compose==1.15.0
+      - run:
+# Usando comandos de Docker Compose,creamos los contenedores de nuestra aplicación y ejecutamos las pruebas unitarias dentro del contenedor 'dockerapp'
+          name: Run tests
+          command: |
+            docker-compose up -d
+            docker-compose run dockerapp python test.py
