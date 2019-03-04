@@ -29,7 +29,12 @@ jobs:
             docker-compose up -d
             docker-compose run dockerapp python test.py
       - deploy:
+# Usando comandos de Docker,desplegamos nuestra imagen en DockerHub
           name: Push application Docker image
+# En primer lugar,hacemos login en DockerHub con nuestras credenciales.Las variables DOCKER_HUB_EMAIL,DOCKER_HUB_USER y DOCKER_HUB_PWD las hemos definido en CircleCI para el proyecto dockerapp
+# Debido a que la imagen se crea con Docker Compose,el nombre de la imagen tiene el formato NombreDirectorioActual_NombreImagenDockerComposeYml(dockerapp_dockerapp)
+# Establecemos dos tags a nuestra imagen dockerapp_dockerapp;uno con el valor de la variable CIRCLE_SHA1 predefinida en CircleCI, que contiene el valor GitHash(id asociado al commit), y otro con latest
+# Desplegamos la imagen con sus correspondientes tags en DockerHub.La desplegamos 2 veces porque hemos hecho dos versiones de la imagen al asociarla dos tags distintos          
           command: |
             docker login -e $DOCKER_HUB_EMAIL -u $DOCKER_HUB_USER_ID -p $DOCKER_HUB_PWD
             docker tag dockerapp_dockerapp $DOCKER_HUB_USER_ID/dockerapp:$CIRCLE_SHA1
