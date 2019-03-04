@@ -14,11 +14,18 @@ test:
     - docker-compose run dockerapp python test.py
 
 deployment:
+# Indicamos que el despliegue de la imagen va aser en DockerHub
   hub:
+# Especificamos las ramas de nuestro repositorio GitHub sobre las que queremos realizar despliegues en DockerHub
     branch: [circle_ci_publish, master]
+# Especificamos los comandos necesarios para realizar despliegues en DockerHub
     commands:
+# En primer lugar,hacemos login en DockerHub con nuestras credenciales.Las variables DOCKER_HUB_EMAIL,DOCKER_HUB_USER y DOCKER_HUB_PWD las hemos definido en CircleCI para el proyecto dockerapp
       - docker login -e $DOCKER_HUB_EMAIL -u $DOCKER_HUB_USER_ID -p $DOCKER_HUB_PWD
+# Debido a que la imagen se crea con Docker Compose,el nombre de la imagen tiene el formato NombreDirectorioActual_NombreImagenDockerComposeYml(dockerapp_dockerapp)
+# Establecemos dos tags a nuestra imagen dockerapp_dockerapp;uno con el valor de la variable CIRCLE_SHA1 predefinida en CircleCI, que contiene el valor GitHash(id asociado al commit), y otro con latest
       - docker tag dockerapp_dockerapp $DOCKER_HUB_USER_ID/dockerapp:$CIRCLE_SHA1
       - docker tag dockerapp_dockerapp $DOCKER_HUB_USER_ID/dockerapp:latest
+# Desplegamos la imagen con sus correspondientes tags en DockerHub.La desplegamos 2 veces porque hemos hecho dos versiones de la imagen al asociarla dos tags distintos
       - docker push $DOCKER_HUB_USER_ID/dockerapp:$CIRCLE_SHA1
       - docker push $DOCKER_HUB_USER_ID/dockerapp:latest
